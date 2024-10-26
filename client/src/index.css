@@ -193,3 +193,9 @@ button:focus-visible {
 .custom-scrollbar::-webkit-scrollbar-thumb:active {
   background: rgba(107, 114, 128, 0.8); /* Darker gray-500 for active state */
 }
+
+.react-flow__node-output {
+  user-select: none;
+  pointer-events: none;
+  border: none;
+}

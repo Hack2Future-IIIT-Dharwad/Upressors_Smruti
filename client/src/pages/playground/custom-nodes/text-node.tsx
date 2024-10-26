@@ -1,15 +1,27 @@
+import { useText } from "@/store/TextContext";
 import { Handle } from "@xyflow/react";
 import { useState } from "react";
 
 export const TextNode = ({ data }: any) => {
-    const [inputText, setInputText] = useState(data.text || "");
+    const { setText } = useText();
+    const [isDisabled, setIsDisabled] = useState(false);
+    const [inputValue, setInputValue] = useState("");
 
     const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setInputText(event.target.value);
+        setInputValue(event.target.value);
+    };
+
+    const handleSetText = () => {
+        setText(inputValue);
+        setIsDisabled(true);
+    };
+
+    const handleEdit = () => {
+        setIsDisabled(false);
     };
 
     return (
-        <div className="flex items-center bg-gray-100 p-2 rounded-md shadow-md">
+        <div className="flex items-center bg-gray-100 p-2 rounded-md shadow-md gap-2">
             <Handle
                 type="source"
                 position="right"
@@ -17,11 +29,30 @@ export const TextNode = ({ data }: any) => {
             />
             <input
                 type="text"
-                value={inputText}
                 onChange={handleInputChange}
-                className="ml-2 p-1 border border-gray-300 rounded-md"
+                value={inputValue}
+                disabled={isDisabled}
+                className={`p-1 border border-gray-300 rounded-md ${isDisabled
+                        ? 'bg-gray-200 cursor-not-allowed'
+                        : 'bg-white cursor-text'
+                    }`}
                 placeholder="Enter text..."
             />
+            {!isDisabled ? (
+                <button
+                    onClick={handleSetText}
+                    className="px-3 py-1 rounded-md text-white bg-blue-500 hover:bg-blue-600"
+                >
+                    Set
+                </button>
+            ) : (
+                <button
+                    onClick={handleEdit}
+                    className="px-3 py-1 rounded-md text-white bg-green-500 hover:bg-green-600"
+                >
+                    Edit
+                </button>
+            )}
         </div>
     );
 };

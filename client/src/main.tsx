@@ -3,12 +3,16 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { AuthProvider } from './store/AuthContext.tsx'
+import { TextProvider } from './store/TextContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <App />
-    </AuthProvider>
+    <TextProvider>
+      <AuthProvider>
+        <App />
+      </AuthProvider>
+    </TextProvider>
+
 
   </StrictMode>,
 )

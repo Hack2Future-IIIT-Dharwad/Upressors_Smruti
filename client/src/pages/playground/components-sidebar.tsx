@@ -11,16 +11,40 @@ interface ComponentsSideBarProps {
 
 const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsSideBarProps) => {
     const [uploadedImages, setUploadedImages] = useState([]);
+    // const [inputText, setInputText] = useState([]);
+
+    // const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    //     const text = event.target.value
+    //     setInputText(prev => [...prev, {
+    //         type: "text",
+    //         name: "text input",
+
+    //         text: text
+    //     }] as any);
+    // };
 
     const handleRunPipeline = () => {
         onRunPipeline();
     };
+
+
+    // const onDragStart2 = (event, inputText) => {
+    //     event.dataTransfer.setData('application/xyflow-type', inputText.type);
+    //     event.dataTransfer.setData('application/xyflow-name', inputText.name);
+    //     event.dataTransfer.setData('application/xyflow-category', "");
+    //     event.dataTransfer.setData('application/xyflow-file', "");
+    //     event.dataTransfer.setData('application/xyflow-text', inputText.text);
+    //     event.dataTransfer.effectAllowed = 'move';
+    // };
 
     const onDragStart = (event, data) => {
         event.dataTransfer.setData('application/xyflow-type', data.type);
         event.dataTransfer.setData('application/xyflow-name', data.name);
         event.dataTransfer.setData('application/xyflow-category', data.category);
         event.dataTransfer.setData('application/xyflow-file', data.file);
+        event.dataTransfer.setData('application/xyflow-text', data.text);
+
+        console.log(data.text)
         event.dataTransfer.effectAllowed = 'move';
     };
 
@@ -71,6 +95,13 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
             color: 'blue',
             image: null
         },
+
+        {
+            type: 'model',
+            name: 'Colorization',
+            color: 'blue',
+            image: null
+        }
         // {
         //     type: 'model',
         //     name: 'MISTRAL-7B-INSTRUCT-V0.2',
@@ -88,22 +119,18 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
     const imageGeneration = [
         {
             type: 'output',
-            name: 'OUTPUT-IMG2IMG',
+            name: 'OUTPUT-IMAGE',
             color: 'blue',
             image: null
         },
         {
             type: 'output',
-            name: 'OUTPUT-VID2VID',
+            name: 'OUTPUT-VIDEO',
             color: 'blue',
             image: null
         },
-        {
-            type: 'output',
-            name: 'OUTPUT-TXT2IMG',
-            color: 'blue',
-            image: null
-        },
+
+
     ];
 
     const text_to_image = [
@@ -210,6 +237,15 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                                 <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
                             </div>
                         ))}
+
+                        {/* <input
+                            type="text"
+                            draggable
+                            onDragStart={(event) => onDragStart(event, inputText)}
+                            onChange={handleInputChange}
+                            className="ml-2 p-1 border border-gray-300 rounded-md"
+                            placeholder="Enter text..."
+                        /> */}
                     </CardContent>
                 </Card>
 

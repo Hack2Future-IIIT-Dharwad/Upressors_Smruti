@@ -13,10 +13,15 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import base64
+import requests
+from pathlib import Path
+from deoldify.visualize import get_image_colorizer
 
 app = Flask(__name__)
 CORS(app, resources={r"/enhance/image": {"origins": "*"}}, supports_credentials=True)
 CORS(app, resources={r"/enhance/video": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/enhance/text": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/colorize/image": {"origins": "*"}}, supports_credentials=True)
 
 UPLOAD_FOLDER = 'test_data/test'
 RESULT_FOLDER = 'result'
@@ -162,23 +167,12 @@ def enhance_image():
         # Generate unique filename
     filename = 'input.png'
     input_path = os.path.join(UPLOAD_FOLDER, filename)
-        
-        # Save the image
+
     image.save(input_path)
 
 
     original_aspect_ratio = preprocess_image(input_path, input_path)
 
-    # command = [
-    #     "python", "main.py", 
-    #     "--mode", "test_only", 
-    #     "--LR_path", UPLOAD_FOLDER, 
-    #     "--generator_path", "./model/pre_trained_model_200.pt"
-    # ]
-    
-    
-
-    # subprocess.run(command, check=True)
     
     output_file_name=""
     def test_only():
@@ -215,7 +209,7 @@ def enhance_image():
     final_output_path = os.path.join(RESULT_FOLDER, f"final_{filename}")
     final_image = postprocess_output(output_path, original_aspect_ratio, final_output_path)
 
-    # Convert the final image to data URL
+  
     data_url = image_to_data_url(final_image)
 
 
@@ -290,6 +284,148 @@ def enhance_video():
     except Exception as e:
         clean_up_frames()  # Clean up on error
         return jsonify({"error": str(e)}), 500
+    
+    
 
+    
+@app.route('/enhance/text', methods=['POST'])
+def enhance_video_from_text():
+    
+        
+                
+        def send_generation_request(host, params):
+            STABILITY_KEY ="sk-SsZNGnGEiuM8RB2NI1wfpu6cpHgq4UELFeVbv1bHbZ1E7EN9"
+            if not STABILITY_KEY:
+                raise ValueError("STABILITY_KEY environment variable is not set.")
+            headers = {
+                "Accept": "image/*",
+                "Authorization": f"Bearer {STABILITY_KEY}",
+                
+            }
+            files = {}
+            image = params.pop("image", None)
+            mask = params.pop("mask", None)
+            if image is not None and image != '':
+                files["image"] = open(image, 'rb')
+            if mask is not None and mask != '':
+                files["mask"] = open(mask, 'rb')
+            if len(files)==0:
+                files["none"] = ''
+
+            response = requests.post(
+                host,
+                headers=headers,
+                files=files,
+                data=params
+            )
+
+            if not response.ok:
+                raise Exception(f"HTTP {response.status_code}: {response.text}")
+
+            return response
+
+        try:
+            data = request.json
+            prompt = data.get('text')
+            negative_prompt = data.get('negative_prompt', '')
+            aspect_ratio = data.get('aspect_ratio', '3:2')
+            seed = data.get('seed', 0)
+            output_format = data.get('output_format', 'jpeg')
+
+            host = "https://api.stability.ai/v2beta/stable-image/generate/ultra"
+            params = {
+                "prompt": prompt,
+                "negative_prompt": negative_prompt,
+                "aspect_ratio": aspect_ratio,
+                "seed": seed,
+                "output_format": output_format
+            }
+   
+            response = send_generation_request(host, params)
+            output_image=response.content
+    
+
+            if isinstance(output_image, bytes):
+            # Convert bytes to a PIL Image
+                output_image = Image.open(BytesIO(output_image))
+
+            data_url = image_to_data_url(output_image)
+      
+            
+            
+            return jsonify({
+                "success": True,
+                "processedImage": data_url
+            })
+            
+           
+            
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
+        
+        
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+_colorizer = get_image_colorizer(root_folder=Path("."), artistic=True)
+        
+@app.route('/colorize/image', methods=['POST'])
+def colorize():
+    
+    try:
+        
+        image_data_url = request.json.get('image')
+        
+        if not image_data_url:
+                return jsonify({"error": "No image provided"}), 400
+            
+            # Extract the base64 encoded image data
+        header, encoded = image_data_url.split(',', 1)
+            
+            # Decode the base64 string to bytes
+        image_data = base64.b64decode(encoded)
+            
+            # Create a blob-like object using BytesIO
+        blob = BytesIO(image_data)
+            
+            # Create image object from blob
+        image = Image.open(blob)
+  
+        filename = 'input.png'
+        input_path = os.path.join("uploads", filename)
+            
+            # Save the image
+        image.save(input_path)
+
+        # Colorize the image
+        render_factor = int(request.form.get('render_factor', 10))  # Get render factor from the form, default is 10
+        output_image = _colorizer.get_transformed_image(
+            path=input_path,
+            render_factor=render_factor,
+            watermarked=False,
+            post_process=True
+        )
+
+        # # Save the result to a BytesIO object
+        # output_buffer = io.BytesIO()
+        # output_image.save(output_buffer, format="JPEG")
+        # output_buffer.seek(0)
+
+        if isinstance(output_image, bytes):
+                # Convert bytes to a PIL Image
+                    output_image = Image.open(BytesIO(output_image))
+
+        data_url = image_to_data_url(output_image)
+        
+            
+            
+        return jsonify({
+                    "success": True,
+                    "processedImage": data_url
+                })
+        
+                
+    except Exception as e:
+            return jsonify({"error": str(e)}), 500
+        
 if __name__ == '__main__':
     app.run(debug=True,port=3000,host="0.0.0.0")

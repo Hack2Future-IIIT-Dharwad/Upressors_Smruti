@@ -21,6 +21,8 @@ import { OutputNode } from './custom-nodes/output-node';
 import { WebCamNode } from './custom-nodes/webcam-node';
 import { VideoNode } from './custom-nodes/video-node';
 import { TextNode } from './custom-nodes/text-node';
+import { useText } from '@/store/TextContext';
+
 
 
 const nodeTypes = {
@@ -40,6 +42,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
     const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [isProcessing, setIsProcessing] = useState(false);
+    const { text } = useText()
 
     useEffect(() => {
         if (shouldClear) {
@@ -165,24 +168,50 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
 
 
                         if (inputNode.data.type == "image") {
-                            const response = await fetch('http://localhost:3000/enhance/image', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    image: processedFile,
-                                    model: nextNode.data.label,
-                                }),
-                            });
+
+                            if (nextNode.data.label == "Colorization") {
+                                const response = await fetch('http://localhost:3000/colorize/image', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        image: processedFile,
+                                        model: nextNode.data.label,
+                                    }),
+                                });
 
 
-                            if (!response.ok) {
-                                throw new Error(`Processing failed at ${nextNode.data.label}`);
+                                if (!response.ok) {
+                                    throw new Error(`Processing failed at ${nextNode.data.label}`);
+                                }
+
+                                const result = await response.json();
+                                processedFile = result.processedImage;
+
+                            }
+                            else {
+                                const response = await fetch('http://localhost:3000/enhance/image', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        image: processedFile,
+                                        model: nextNode.data.label,
+                                    }),
+                                });
+
+
+                                if (!response.ok) {
+                                    throw new Error(`Processing failed at ${nextNode.data.label}`);
+                                }
+
+                                const result = await response.json();
+                                processedFile = result.processedImage;
+
                             }
 
-                            const result = await response.json();
-                            processedFile = result.processedImage;
 
                         }
                         else if (inputNode.data.type == "video") {
@@ -206,7 +235,27 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                             processedFile = result.processedVideo;
                         }
 
+                        else if (inputNode.data.type == "text") {
 
+                            const response = await fetch('http://localhost:3000/enhance/text', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    text: text,
+
+                                }),
+                            });
+
+
+                            if (!response.ok) {
+                                throw new Error(`Processing failed at ${nextNode.data.label}`);
+                            }
+
+                            const result = await response.json();
+                            processedFile = result.processedImage;
+                        }
 
 
 
@@ -270,8 +319,10 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
 
         const reactFlowBounds = event.currentTarget.getBoundingClientRect();
         const type = event.dataTransfer.getData('application/xyflow-type');
+        console.log(type)
         const name = event.dataTransfer.getData('application/xyflow-name');
         const file = event.dataTransfer.getData('application/xyflow-file');
+
 
         const position = {
             x: event.clientX - reactFlowBounds.left,
@@ -285,9 +336,11 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
             data: {
                 label: name,
                 type,
-                file
+                file,
             },
         };
+
+        console.log(newNode)
 
         setNodes((nds) => [...nds, newNode]);
     }, [nodes, setNodes]);
