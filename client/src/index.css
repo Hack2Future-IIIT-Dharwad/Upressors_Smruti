@@ -163,3 +163,33 @@ button:focus-visible {
 .animate-fade-in {
   animation: fade-in 1.5s ease-out forwards;
 }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(31, 41, 55, 0.3); /* Tailwind's gray-800 with opacity */
+  border-radius: 4px;
+  margin: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(107, 114, 128, 0.5); /* Tailwind's gray-500 with opacity */
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7); /* Slightly darker gray-500 */
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(107, 114, 128, 0.5) rgba(31, 41, 55, 0.3);
+}
+
+/* When dragging */
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: rgba(107, 114, 128, 0.8); /* Darker gray-500 for active state */
+}
