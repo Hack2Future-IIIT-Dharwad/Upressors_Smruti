@@ -19,7 +19,7 @@ import { ImageNode } from './custom-nodes/image-node';
 import { ModelNode } from './custom-nodes/model-node';
 import { OutputNode } from './custom-nodes/output-node';
 import { WebCamNode } from './custom-nodes/webcam-node';
-import { useHttpRequest } from '@/hooks/httpClient';
+
 
 const nodeTypes = {
     image: ImageNode,
@@ -36,8 +36,6 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
     const [nodes, setNodes, onNodesChange] = useNodesState<NodeData>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [isProcessing, setIsProcessing] = useState(false);
-
-    const sendRequest = useHttpRequest()
 
     useEffect(() => {
         if (shouldClear) {
@@ -142,8 +140,6 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
         console.log("inside execute pipeline")
         if (!validatePipeline()) return;
 
-        // console.log(validatePipeline)
-
         setIsProcessing(true);
         try {
             const inputNodes = nodes.filter(node =>
@@ -172,7 +168,6 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                             }),
                         });
 
-                        // const response = await mockProcessImage(processedImage, nextNode.data.label);
 
 
                         if (!response.ok) {

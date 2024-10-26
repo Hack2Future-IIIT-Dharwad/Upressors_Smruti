@@ -20,7 +20,7 @@ const LoadingSpinner: React.FC = () => {
         console.log(postData)
 
         axios
-            .post('http://localhost:5000/api/oauth/google', postData)
+            .post(`${import.meta.env.VITE_SERVER_ENDPOINT}/api/oauth/google`, postData)
             .then((response) => {
                 const { token, userId } = response.data;
                 localStorage.setItem('token', token)
