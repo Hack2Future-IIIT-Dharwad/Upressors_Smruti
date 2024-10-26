@@ -34,7 +34,7 @@ const Footer = () => {
                 <h1 className="text-5xl sm:text-7xl md:text-9xl 
                            font-normal text-gray-800 tracking-tight leading-none
                            transition-all duration-300">
-                    ComfyUI
+                    ReviveAI
                 </h1>
             </div>
 

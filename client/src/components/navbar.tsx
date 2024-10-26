@@ -224,10 +224,10 @@ const Navbar: React.FC = () => {
                 <div className="flex text-white mt-8">
                     <div className="container mx-auto px-4 pt-10 text-center">
                         <h1 className="text-6xl md:text-[12rem] font-light pb-5 transition-all duration-300 bg-clip-text text-transparent bg-gradient-to-r from-[#e3efe8] to-[#96a7cf]">
-                            ComfyUI
+                            ReviveAI
                         </h1>
                         <p className="text-xl md:text-2xl text-gray-400 mb-12">
-                            Easily generate images and videos using AI
+                            Easily enhance images and videos using Gen-AI
                         </p>
                     </div>
                 </div>

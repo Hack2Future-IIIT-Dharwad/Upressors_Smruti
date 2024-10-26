@@ -20,6 +20,7 @@ import { ModelNode } from './custom-nodes/model-node';
 import { OutputNode } from './custom-nodes/output-node';
 import { WebCamNode } from './custom-nodes/webcam-node';
 import { VideoNode } from './custom-nodes/video-node';
+import { TextNode } from './custom-nodes/text-node';
 
 
 const nodeTypes = {
@@ -27,7 +28,8 @@ const nodeTypes = {
     model: ModelNode,
     output: OutputNode,
     video: VideoNode,
-    webcam: WebCamNode
+    webcam: WebCamNode,
+    text: TextNode
 };
 
 export type ReactFlowCanvasRef = {
@@ -102,7 +104,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
     const validatePipeline = useCallback(() => {
 
         const inputNodes = nodes.filter(node =>
-            node.type === 'image' || node.type === 'webcam' || node.type === 'video'
+            node.type === 'image' || node.type === 'webcam' || node.type === 'video' || node.type === "text"
         );
 
         console.log(inputNodes)
@@ -145,7 +147,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
         setIsProcessing(true);
         try {
             const inputNodes = nodes.filter(node =>
-                node.type === 'image' || node.type === 'webcam' || node.type === 'video'
+                node.type === 'image' || node.type === 'webcam' || node.type === 'video' || node.type === "text"
             );
 
             for (const inputNode of inputNodes) {
@@ -163,7 +165,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
 
 
                         if (inputNode.data.type == "image") {
-                            const response = await fetch('http://localhost:3000/enhance', {
+                            const response = await fetch('http://localhost:3000/enhance/image', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -190,7 +192,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                                     'Content-Type': 'application/json',
                                 },
                                 body: JSON.stringify({
-                                    image: processedFile,
+                                    video: processedFile,
                                     model: nextNode.data.label,
                                 }),
                             });

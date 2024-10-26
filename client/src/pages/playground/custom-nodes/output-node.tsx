@@ -92,6 +92,7 @@ export const OutputNode = ({ data }: { data: OutputNodeData }) => {
                                     src={data.processedFile}
                                     className="w-36 h-36 rounded-md object-cover"
                                     loop
+                                    // autoPlay
                                     onClick={togglePlay}
                                 />
                                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-opacity duration-200 flex items-center justify-center">

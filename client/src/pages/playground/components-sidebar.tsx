@@ -53,6 +53,15 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
             color: 'green',
             image: null
         },
+        {
+            type: 'text',
+            name: 'Text Input',
+            color: 'green',
+            text: null
+        },
+
+
+
     ];
 
     const imageToImage = [
@@ -96,6 +105,15 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
             image: null
         },
     ];
+
+    const text_to_image = [
+        {
+            type: 'model',
+            name: 'Stable diffusion 3.5',
+            color: 'blue',
+            image: null
+        },
+    ]
 
 
     const video_to_video = [
@@ -219,6 +237,28 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                 </Card>
 
                 {/* Image Generation Section */}
+
+                <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">
+                            <Sparkles className="w-4 h-4 mr-2 text-gray-500" />
+                            TEXT TO IMAGE
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {text_to_image.map((model) => (
+                            <div
+                                key={model.name}
+                                draggable
+                                onDragStart={(event) => onDragStart(event, model)}
+                                className="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg cursor-move hover:bg-gray-800/50 transition-all duration-200"
+                            >
+                                <span className="text-blue-400 text-sm font-medium">{model.name}</span>
+                                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
 
 
 
