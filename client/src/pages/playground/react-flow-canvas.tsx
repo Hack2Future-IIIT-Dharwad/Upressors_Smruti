@@ -19,12 +19,14 @@ import { ImageNode } from './custom-nodes/image-node';
 import { ModelNode } from './custom-nodes/model-node';
 import { OutputNode } from './custom-nodes/output-node';
 import { WebCamNode } from './custom-nodes/webcam-node';
+import { VideoNode } from './custom-nodes/video-node';
 
 
 const nodeTypes = {
     image: ImageNode,
     model: ModelNode,
     output: OutputNode,
+    video: VideoNode,
     webcam: WebCamNode
 };
 
@@ -100,13 +102,13 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
     const validatePipeline = useCallback(() => {
 
         const inputNodes = nodes.filter(node =>
-            node.type === 'image' || node.type === 'webcam'
+            node.type === 'image' || node.type === 'webcam' || node.type === 'video'
         );
 
         console.log(inputNodes)
 
         if (inputNodes.length === 0) {
-            console.log("no nodes")
+
             toast({
                 title: "Pipeline Error",
                 description: "Pipeline must have at least one input node",
@@ -143,12 +145,13 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
         setIsProcessing(true);
         try {
             const inputNodes = nodes.filter(node =>
-                node.type === 'image' || node.type === 'webcam'
+                node.type === 'image' || node.type === 'webcam' || node.type === 'video'
             );
 
             for (const inputNode of inputNodes) {
                 let currentNode = inputNode;
-                let processedImage = inputNode.data.image;
+                let processedFile = inputNode.data.file;
+
 
                 while (true) {
                     const outgoers = getOutgoers(currentNode, nodes, edges);
@@ -157,28 +160,53 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                     const nextNode = outgoers[0];
 
                     if (nextNode.type === 'model') {
-                        const response = await fetch('http://localhost:3000/enhance', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                image: processedImage,
-                                model: nextNode.data.label,
-                            }),
-                        });
 
 
+                        if (inputNode.data.type == "image") {
+                            const response = await fetch('http://localhost:3000/enhance', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    image: processedFile,
+                                    model: nextNode.data.label,
+                                }),
+                            });
 
-                        if (!response.ok) {
-                            throw new Error(`Processing failed at ${nextNode.data.label}`);
+
+                            if (!response.ok) {
+                                throw new Error(`Processing failed at ${nextNode.data.label}`);
+                            }
+
+                            const result = await response.json();
+                            processedFile = result.processedImage;
+
+                        }
+                        else if (inputNode.data.type == "video") {
+                            const response = await fetch('http://localhost:3000/enhance/video', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    image: processedFile,
+                                    model: nextNode.data.label,
+                                }),
+                            });
+
+
+                            if (!response.ok) {
+                                throw new Error(`Processing failed at ${nextNode.data.label}`);
+                            }
+
+                            const result = await response.json();
+                            processedFile = result.processedVideo;
                         }
 
-                        const result = await response.json();
-                        console.log(result)
 
 
-                        processedImage = result.processedImage;
+
 
                         setNodes(nds => nds.map(node => {
                             if (node.id === nextNode.id) {
@@ -186,7 +214,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                                     ...node,
                                     data: {
                                         ...node.data,
-                                        processedImage: processedImage
+                                        processedFile: processedFile
                                     }
                                 };
                             }
@@ -199,7 +227,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                                     ...node,
                                     data: {
                                         ...node.data,
-                                        processedImage: processedImage
+                                        processedFile: processedFile
                                     }
                                 };
                             }
@@ -241,7 +269,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
         const reactFlowBounds = event.currentTarget.getBoundingClientRect();
         const type = event.dataTransfer.getData('application/xyflow-type');
         const name = event.dataTransfer.getData('application/xyflow-name');
-        const image = event.dataTransfer.getData('application/xyflow-image');
+        const file = event.dataTransfer.getData('application/xyflow-file');
 
         const position = {
             x: event.clientX - reactFlowBounds.left,
@@ -255,7 +283,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
             data: {
                 label: name,
                 type,
-                image
+                file
             },
         };
 

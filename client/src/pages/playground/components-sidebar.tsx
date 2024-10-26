@@ -20,21 +20,21 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
         event.dataTransfer.setData('application/xyflow-type', data.type);
         event.dataTransfer.setData('application/xyflow-name', data.name);
         event.dataTransfer.setData('application/xyflow-category', data.category);
-        event.dataTransfer.setData('application/xyflow-image', data.image);
+        event.dataTransfer.setData('application/xyflow-file', data.file);
         event.dataTransfer.effectAllowed = 'move';
     };
 
-    const handleImageUpload = (event: any) => {
+    const handleFileUpload = (event: any) => {
         const files = event.target.files;
         if (files) {
             Array.from(files).forEach(file => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     setUploadedImages(prev => [...prev, {
-                        type: 'image',
+                        type: file.type.startsWith('image/') ? 'image' : 'video',
                         name: (file as any).name,
                         color: 'green',
-                        image: e.target.result
+                        file: e.target.result
                     }] as any);
                 };
                 reader.readAsDataURL(file);
@@ -62,24 +62,46 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
             color: 'blue',
             image: null
         },
-        {
-            type: 'model',
-            name: 'MISTRAL-7B-INSTRUCT-V0.2',
-            color: 'blue',
-            image: null
-        },
-        {
-            type: 'model',
-            name: 'GEMMA-7B-IT',
-            color: 'blue',
-            image: null
-        },
+        // {
+        //     type: 'model',
+        //     name: 'MISTRAL-7B-INSTRUCT-V0.2',
+        //     color: 'blue',
+        //     image: null
+        // },
+        // {
+        //     type: 'model',
+        //     name: 'GEMMA-7B-IT',
+        //     color: 'blue',
+        //     image: null
+        // },
     ];
 
     const imageGeneration = [
         {
             type: 'output',
-            name: 'STABLE-DIFFUSION-IMG2IMG',
+            name: 'OUTPUT-IMG2IMG',
+            color: 'blue',
+            image: null
+        },
+        {
+            type: 'output',
+            name: 'OUTPUT-VID2VID',
+            color: 'blue',
+            image: null
+        },
+        {
+            type: 'output',
+            name: 'OUTPUT-TXT2IMG',
+            color: 'blue',
+            image: null
+        },
+    ];
+
+
+    const video_to_video = [
+        {
+            type: 'model',
+            name: 'EnRes video',
             color: 'blue',
             image: null
         },
@@ -126,13 +148,13 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                         <label className="flex items-center justify-center p-3 bg-gray-900/50 rounded-lg cursor-pointer hover:bg-gray-800/50 border border-dashed border-gray-700/50 transition-all duration-200 group">
                             <input
                                 type="file"
-                                accept="image/*"
+                                accept="image/*,video/*"
                                 className="hidden"
-                                onChange={handleImageUpload}
+                                onChange={handleFileUpload}
                                 multiple
                             />
                             <Upload className="w-4 h-4 mr-2 text-emerald-500 group-hover:text-emerald-400" />
-                            <span className="text-gray-400 text-sm group-hover:text-gray-300">Upload Image</span>
+                            <span className="text-gray-400 text-sm group-hover:text-gray-300">Upload Image / Video</span>
                         </label>
 
                         {uploadedImages.map((image, index) => (
@@ -197,6 +219,32 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                 </Card>
 
                 {/* Image Generation Section */}
+
+
+
+                <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
+                    <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">
+                            <Sparkles className="w-4 h-4 mr-2 text-gray-500" />
+                            VIDEO TO VIDEO
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                        {video_to_video.map((model) => (
+                            <div
+                                key={model.name}
+                                draggable
+                                onDragStart={(event) => onDragStart(event, model)}
+                                className="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg cursor-move hover:bg-gray-800/50 transition-all duration-200"
+                            >
+                                <span className="text-blue-400 text-sm font-medium">{model.name}</span>
+                                <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                            </div>
+                        ))}
+                    </CardContent>
+                </Card>
+
+
                 <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">

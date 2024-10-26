@@ -2,7 +2,7 @@ import { Handle } from "@xyflow/react";
 
 
 
-export const ImageNode = ({ data }: any) => {
+export const VideoNode = ({ data }: any) => {
     return (
         <>
             <Handle
@@ -14,9 +14,10 @@ export const ImageNode = ({ data }: any) => {
 
                 {data.file && (
                     <div className="w-full  bg-gray-100 rounded-md overflow-hidden">
-                        <img
+                        <video
                             src={data.file}
-                            alt={data.label}
+                            autoPlay
+                            loop
                             className="w-24 h-24 object-cover object-fit"
                         />
                     </div>
