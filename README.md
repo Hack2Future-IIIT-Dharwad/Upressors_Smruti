@@ -71,10 +71,17 @@ python app.py
 
 
 
-
 ## 👥 Team
 
 - [Smruti Patil](https://github.com/SmrutiPatil) - Team Lead
 - [Mandar Dighe](https://github.com/Mandy767) 
 - [Ratnesh Kherudkar](https://github.com/r4tnx) 
-- [Jahnavi Enduri](https://github.com/endurijahnavi) 
+- [Jahnavi Enduri](https://github.com/endurijahnavi)
+
+
+
+## 📚 References
+- [ESRGAN](https://arxiv.org/abs/1809.00219)
+- [Style Transfer](https://arxiv.org/abs/1705.06830)
+- [Stability.AI](https://platform.stability.ai/)
+- [Image colorization](https://github.com/jantic/DeOldify)
