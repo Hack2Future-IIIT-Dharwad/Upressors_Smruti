@@ -7,9 +7,8 @@ Bringing the Past into the Present - An advanced AI solution for restoring and c
 - High-resolution image enhancement using ESRGAN/SRGAN
 - Intelligent colorization of black and white photographs
 - Texture and detail preservation
-- Batch processing capabilities
+- Video processing capabilities
 - User-friendly web interface
-- Secure image storage and management
 
 ## 🏗️ Project Structure
 
@@ -27,7 +26,6 @@ ReviveAI/
 - Node.js (v14 or higher)
 - Python 3.8+
 - MongoDB
-- CUDA-compatible GPU (recommended)
 
 ### Installation
 
@@ -73,32 +71,10 @@ python app.py
 
 
 
-## 📈 Performance Considerations
-
-- Use GPU acceleration for AI processing
-- Implement image caching
-- Configure proper scaling for the AI service
-- Optimize image storage and delivery
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 👥 Team
 
-- [Your Name](https://github.com/yourusername) - Project Lead
-- [Team Member 1](https://github.com/teammember1) - AI Engineer
-- [Team Member 2](https://github.com/teammember2) - Frontend Developer
-- [Team Member 3](https://github.com/teammember3) - Backend Developer
-
-## 📞 Support
-
-For support, email support@revive.ai or open an issue in the repository.
+- [Smruti Patil](https://github.com/SmrutiPatil) - Team Lead
+- [Mandar Dighe](https://github.com/Mandy767) 
+- [Ratnesh Kherudkar](https://github.com/r4tnx) 
+- [Jahnavi Enduri](https://github.com/endurijahnavi) 
