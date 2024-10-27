@@ -112,7 +112,7 @@ export const OutputNode = ({ data }: { data: OutputNodeData }) => {
                             <ChessboardSkeleton />
                         )}
                         <NodeToolbar isVisible={data.toolbarVisible} position={data.toolbarPosition}>
-                            <button onClick={handleFileDownload}>dowload</button>
+                            <button onClick={handleFileDownload}>Download</button>
 
                         </NodeToolbar>
                     </div>
