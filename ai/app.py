@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from srgan_model import Generator
 from dataset import *
 from io import BytesIO
+import io
 import cv2
 import numpy as np
 from tqdm import tqdm
@@ -16,7 +17,9 @@ import base64
 import requests
 from pathlib import Path
 from deoldify.visualize import get_image_colorizer
-import shutil, sys  
+import shutil, sys 
+import tensorflow_hub as hub
+import tensorflow as tf
 
 app = Flask(__name__)
 CORS(app, resources={r"/enhance/image": {"origins": "*"}}, supports_credentials=True)
@@ -24,6 +27,9 @@ CORS(app, resources={r"/enhance/video": {"origins": "*"}}, supports_credentials=
 CORS(app, resources={r"/enhance/text": {"origins": "*"}}, supports_credentials=True)
 CORS(app, resources={r"/colorize/image": {"origins": "*"}}, supports_credentials=True)
 CORS(app, resources={r"/colorize/video": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/stylize/image": {"origins": "*"}}, supports_credentials=True)
+
+
 
 UPLOAD_FOLDER = 'test_data/test'
 RESULT_FOLDER = 'result'
@@ -562,6 +568,83 @@ def video_colorizer():
         if 'clean_up_frames' in locals():
             clean_up_frames()  # Clean up on error
         return jsonify({"error": str(e)}), 500
+    
+    
+    
+@app.route('/stylize/image', methods=['POST'])
+
+def stylize_image_main():
+    
+    def data_url_to_image(data_url):
+        header, encoded = data_url.split(",", 1)
+        binary_data = base64.b64decode(encoded)
+    
+        buffer = io.BytesIO(binary_data)
+        image = Image.open(buffer)
+        
+        return image
+
+    def load_img(image, max_dim=512):
+        """Load and preprocess image for model input"""
+        # Convert PIL Image to tensor
+        img = tf.convert_to_tensor(np.array(image))
+        img = tf.cast(img, tf.float32)
+        img = img / 255.0  # Normalize to [0,1]
+
+        shape = tf.cast(tf.shape(img)[:-1], tf.float32)
+        long_dim = max(shape)
+        scale = max_dim / long_dim
+
+        new_shape = tf.cast(shape * scale, tf.int32)
+        img = tf.image.resize(img, new_shape)
+        img = img[tf.newaxis, :]
+        return img
+
+    def tensor_to_image(tensor):
+        """Convert tensor to PIL Image"""
+        tensor = tensor * 255
+        tensor = np.array(tensor, dtype=np.uint8)
+        if np.ndim(tensor) > 3:
+            assert tensor.shape[0] == 1
+            tensor = tensor[0]
+        return Image.fromarray(tensor)
+
+    try:
+        data = request.get_json()
+    
+        if not data or 'image1' not in data or 'image2' not in data:
+            return jsonify({'error': 'Missing image data'}), 400
+        
+        hub_model = hub.load('https://tfhub.dev/google/magenta/arbitrary-image-stylization-v1-256/2')
+        
+        content_data_url=data['image1']
+        style_data_url=data['image2']
+        content_image = data_url_to_image(content_data_url)
+        style_image = data_url_to_image(style_data_url)
+        
+        # Preprocess images
+        content_tensor = load_img(content_image)
+        style_tensor = load_img(style_image)
+        
+        # Perform style transfer
+        stylized_image = hub_model(tf.constant(content_tensor), tf.constant(style_tensor))[0]
+        
+        # Convert result to PIL Image
+        output_image = tensor_to_image(stylized_image)
+        
+        # Convert back to data URL
+        result_data_url = image_to_data_url(output_image)
+        
+        return jsonify({
+            "success": True,
+            "processedImage": result_data_url
+        })
+
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+
         
 if __name__ == '__main__':
     app.run(debug=True,port=3000,host="0.0.0.0")

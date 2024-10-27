@@ -79,7 +79,8 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
 
     const imageToImage = [
         { type: 'model', name: 'EnRes', color: 'blue', image: null },
-        { type: 'model', name: 'Colorization', color: 'blue', image: null }
+        { type: 'model', name: 'Colorization', color: 'blue', image: null },
+        { type: 'model', name: 'Stylize', color: 'blue', image: null }
     ];
 
     const text_to_image = [

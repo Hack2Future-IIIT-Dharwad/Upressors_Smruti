@@ -158,6 +158,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                 let processedFile = inputNode.data.file;
 
 
+
                 while (true) {
                     const outgoers = getOutgoers(currentNode, nodes, edges);
                     if (outgoers.length === 0) break;
@@ -177,6 +178,28 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                                     },
                                     body: JSON.stringify({
                                         image: processedFile,
+                                        model: nextNode.data.label,
+                                    }),
+                                });
+
+
+                                if (!response.ok) {
+                                    throw new Error(`Processing failed at ${nextNode.data.label}`);
+                                }
+
+                                const result = await response.json();
+                                processedFile = result.processedImage;
+
+                            }
+                            else if (nextNode.data.label == "Stylize") {
+                                const response = await fetch('http://localhost:3000/stylize/image', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        image1: inputNodes[0].data.file,
+                                        image2: inputNodes[1].data.file,
                                         model: nextNode.data.label,
                                     }),
                                 });
