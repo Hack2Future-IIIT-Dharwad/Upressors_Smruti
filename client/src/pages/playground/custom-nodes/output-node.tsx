@@ -1,6 +1,5 @@
 import { Handle, NodeToolbar } from "@xyflow/react";
-import { Divide } from "lucide-react";
-import React from "react";
+
 
 interface OutputNodeData {
     processedFile?: string;
@@ -8,19 +7,15 @@ interface OutputNodeData {
 }
 
 export const OutputNode = ({ data }: { data: OutputNodeData }) => {
-    const [isPlaying, setIsPlaying] = React.useState(false);
-    const videoRef = React.useRef<HTMLVideoElement>(null);
 
 
     const handleFileDownload = () => {
         const data_url = data.processedFile;
 
-        // Convert data URL to blob
-        const byteString = atob(data_url.split(',')[1]);
-        const mimeString = data_url.split(',')[0].split(':')[1].split(';')[0];
+        const byteString = atob((data_url as any).split(',')[1]);
+        const mimeString = (data_url as any).split(',')[0].split(':')[1].split(';')[0];
 
-        // Get file extension from MIME type
-        const getFileExtension = (mimeType) => {
+        const getFileExtension = (mimeType: any) => {
             const mimeToExt = {
                 'image/jpeg': 'jpg',
                 'image/png': 'png',
@@ -30,7 +25,7 @@ export const OutputNode = ({ data }: { data: OutputNodeData }) => {
                 'video/webm': 'webm',
                 'video/quicktime': 'mov'
             };
-            return mimeToExt[mimeType] || 'file';
+            return (mimeToExt as any)[mimeType] || 'file';
         };
 
         const fileExtension = getFileExtension(mimeString);
@@ -62,17 +57,6 @@ export const OutputNode = ({ data }: { data: OutputNodeData }) => {
         URL.revokeObjectURL(link.href);
     };
 
-
-    const togglePlay = () => {
-        if (videoRef.current) {
-            if (isPlaying) {
-                videoRef.current.pause();
-            } else {
-                videoRef.current.play();
-            }
-            setIsPlaying(!isPlaying);
-        }
-    };
 
     const baseNodeStyle = "bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 w-40 h-40 p-2";
 
@@ -111,7 +95,7 @@ export const OutputNode = ({ data }: { data: OutputNodeData }) => {
                         ) : (
                             <ChessboardSkeleton />
                         )}
-                        <NodeToolbar isVisible={data.toolbarVisible} position={data.toolbarPosition}>
+                        <NodeToolbar isVisible={(data as any).toolbarVisible} position={(data as any).toolbarPosition}>
                             <button onClick={handleFileDownload}>Download</button>
 
                         </NodeToolbar>

@@ -50,7 +50,7 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                             canvas.height = 90;
                             video.currentTime = 1; // Capture frame at 1 second
                             video.onseeked = () => {
-                                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                                (canvas.getContext('2d') as any).drawImage(video, 0, 0, canvas.width, canvas.height);
                                 const thumbnail = canvas.toDataURL();
                                 setUploadedImages(prev =>
                                     prev.map(item =>
@@ -99,7 +99,7 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
 
     return (
         <div className="w-80 h-full bg-gradient-to-b from-gray-900 to-gray-950 flex flex-col gap-4 shadow-xl">
-            {/* Action Buttons */}
+
             <div className="sticky top-0 bg-gray-900/90 backdrop-blur-sm p-4 border-b border-gray-800/50 z-10">
                 <div className="space-y-2">
                     <Button
@@ -126,7 +126,7 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
             </div>
 
             <div className="px-4 pb-4 space-y-4 overflow-y-auto custom-scrollbar">
-                {/* Input Section */}
+
                 <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">
@@ -168,7 +168,7 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                                         </span>
                                     </div>
 
-                                    {/* Thumbnail Container */}
+
                                     <div className="relative w-full h-24 bg-gray-900/30">
                                         {file.thumbnail && (
                                             <img
@@ -203,7 +203,6 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                     </CardContent>
                 </Card>
 
-                {/* Image to Image Section */}
                 <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">
@@ -226,7 +225,7 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                     </CardContent>
                 </Card>
 
-                {/* Text to Image Section */}
+
                 <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">
@@ -249,7 +248,7 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                     </CardContent>
                 </Card>
 
-                {/* Video to Video Section */}
+
                 <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">
@@ -272,7 +271,6 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                     </CardContent>
                 </Card>
 
-                {/* Output Section */}
                 <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">

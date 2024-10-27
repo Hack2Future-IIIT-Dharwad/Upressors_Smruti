@@ -8,9 +8,7 @@ import {
     addEdge,
     getIncomers,
     getOutgoers,
-    getConnectedEdges,
     Node,
-    Edge
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { toast } from "@/hooks/use-toast";
@@ -22,6 +20,7 @@ import { WebCamNode } from './custom-nodes/webcam-node';
 import { VideoNode } from './custom-nodes/video-node';
 import { TextNode } from './custom-nodes/text-node';
 import { useText } from '@/store/TextContext';
+import { useCam } from '@/store/CamContext';
 
 
 
@@ -43,6 +42,8 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [isProcessing, setIsProcessing] = useState(false);
     const { text } = useText()
+    const { camdata } = useCam()
+
 
     useEffect(() => {
         if (shouldClear) {
@@ -153,6 +154,8 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                 node.type === 'image' || node.type === 'webcam' || node.type === 'video' || node.type === "text"
             );
 
+            console.log(inputNodes)
+
             for (const inputNode of inputNodes) {
                 let currentNode = inputNode;
                 let processedFile = inputNode.data.file;
@@ -168,7 +171,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                     if (nextNode.type === 'model') {
 
 
-                        if (inputNode.data.type == "image") {
+                        if (inputNode.data.type == "image" || inputNode.data.type == "webcam") {
 
                             if (nextNode.data.label == "Colorization") {
                                 const response = await fetch('http://localhost:3000/colorize/image', {
@@ -177,7 +180,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                                         'Content-Type': 'application/json',
                                     },
                                     body: JSON.stringify({
-                                        image: processedFile,
+                                        image: camdata !== "" ? camdata : processedFile,
                                         model: nextNode.data.label,
                                     }),
                                 });
@@ -197,8 +200,13 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                                     headers: {
                                         'Content-Type': 'application/json',
                                     },
+                                    // body: JSON.stringify({
+                                    //     image1: inputNodes[0].data.file,
+                                    //     image2: inputNodes[1].data.file,
+                                    //     model: nextNode.data.label,
+                                    // }),
                                     body: JSON.stringify({
-                                        image1: inputNodes[0].data.file,
+                                        image1: camdata !== "" ? camdata : inputNodes[0].data.file,
                                         image2: inputNodes[1].data.file,
                                         model: nextNode.data.label,
                                     }),
@@ -220,7 +228,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                                         'Content-Type': 'application/json',
                                     },
                                     body: JSON.stringify({
-                                        image: processedFile,
+                                        image: camdata !== "" ? camdata : processedFile,
                                         model: nextNode.data.label,
                                     }),
                                 });
@@ -346,7 +354,7 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
         } catch (error) {
             toast({
                 title: "Error",
-                description: error.message || "Failed to execute pipeline",
+                description: (error as any).message || "Failed to execute pipeline",
                 variant: "destructive"
             });
         } finally {
