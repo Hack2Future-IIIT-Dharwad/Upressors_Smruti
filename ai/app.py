@@ -16,12 +16,14 @@ import base64
 import requests
 from pathlib import Path
 from deoldify.visualize import get_image_colorizer
+import shutil, sys  
 
 app = Flask(__name__)
 CORS(app, resources={r"/enhance/image": {"origins": "*"}}, supports_credentials=True)
 CORS(app, resources={r"/enhance/video": {"origins": "*"}}, supports_credentials=True)
 CORS(app, resources={r"/enhance/text": {"origins": "*"}}, supports_credentials=True)
 CORS(app, resources={r"/colorize/image": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/colorize/video": {"origins": "*"}}, supports_credentials=True)
 
 UPLOAD_FOLDER = 'test_data/test'
 RESULT_FOLDER = 'result'
@@ -405,14 +407,10 @@ def colorize():
             post_process=True
         )
 
-        # # Save the result to a BytesIO object
-        # output_buffer = io.BytesIO()
-        # output_image.save(output_buffer, format="JPEG")
-        # output_buffer.seek(0)
 
         if isinstance(output_image, bytes):
-                # Convert bytes to a PIL Image
-                    output_image = Image.open(BytesIO(output_image))
+            
+            output_image = Image.open(BytesIO(output_image))
 
         data_url = image_to_data_url(output_image)
         
@@ -426,6 +424,144 @@ def colorize():
                 
     except Exception as e:
             return jsonify({"error": str(e)}), 500
+        
+
+
+@app.route('/colorize/video', methods=['POST'])
+def video_colorizer():
+    try:
+        video_data_url = request.json.get('video')
+        
+        if not video_data_url:
+            return jsonify({"error": "No video provided"}), 400
+
+        # Extract the base64 encoded video data
+        header, encoded = video_data_url.split(',', 1)
+        
+        # Decode the base64 string to bytes
+        video_data = base64.b64decode(encoded)
+
+        # Create a BytesIO object from the decoded bytes
+        video_stream = BytesIO(video_data)
+
+        # Read the BytesIO stream into a numpy array
+        video_bytes = np.frombuffer(video_stream.read(), np.uint8)
+
+        # Set up folders for processing
+        FRAMES_FOLDER = os.path.join('uploads', 'frames')
+        COLORIZED_FRAMES_FOLDER = os.path.join('uploads', 'colorized_frames')
+        RESULT_FOLDER = os.path.join('uploads', 'result')
+
+        # Create folders if they don't exist
+        os.makedirs(FRAMES_FOLDER, exist_ok=True)
+        os.makedirs(COLORIZED_FRAMES_FOLDER, exist_ok=True)
+        os.makedirs(RESULT_FOLDER, exist_ok=True)
+
+        # Convert the numpy array to a video file format using OpenCV
+        video_path = os.path.join('uploads', "input_video.mp4")
+
+        # Write the video data to the file
+        with open(video_path, "wb") as f:
+            f.write(video_bytes)
+
+        def extract_frames(video_path):
+            """Extract frames from video"""
+            frames = []
+            cap = cv2.VideoCapture(video_path)
+            fps = int(cap.get(cv2.CAP_PROP_FPS))
+            
+            frame_count = 0
+            while cap.isOpened():
+                ret, frame = cap.read()
+                if not ret:
+                    break
+                    
+                frame_path = os.path.join(FRAMES_FOLDER, f"frame_{frame_count:04d}.png")
+                cv2.imwrite(frame_path, frame)
+                frames.append(frame_path)
+                frame_count += 1
+                
+            cap.release()
+            return frames, fps
+
+        def process_frame(frame_path):
+            """Process a single frame using the colorizer"""
+            # Read the frame
+            frame = Image.open(frame_path)
+            
+            # Colorize the frame
+            colorized_frame = _colorizer.get_transformed_image(
+                path=frame_path,
+                render_factor=int(request.form.get('render_factor', 10)),
+                watermarked=False,
+                post_process=True
+            )
+            
+            if isinstance(colorized_frame, bytes):
+                colorized_frame = Image.open(BytesIO(colorized_frame))
+                
+            return colorized_frame
+
+        def create_video(colorized_frames, output_path, fps):
+            """Create video from processed frames"""
+            first_frame = cv2.imread(colorized_frames[0])
+            height, width = first_frame.shape[:2]
+            
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+            out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+            
+            for frame_path in colorized_frames:
+                frame = cv2.imread(frame_path)
+                out.write(frame)
+                
+            out.release()
+
+        def video_to_data_url(video_path):
+            """Convert video to base64 data URL"""
+            with open(video_path, "rb") as f:
+                video_bytes = f.read()
+                video_base64 = base64.b64encode(video_bytes).decode('utf-8')
+                return f"data:video/mp4;base64,{video_base64}"
+
+        def clean_up_frames():
+            """Clean up temporary files"""
+            for folder in [FRAMES_FOLDER, COLORIZED_FRAMES_FOLDER]:
+                if os.path.exists(folder):
+                    shutil.rmtree(folder)
+
+        # Extract frames
+        print("Extracting frames...")
+        frames, fps = extract_frames(video_path)
+
+        # Process frames
+        print("Colorizing frames...")
+        colorized_frames = []
+        for i, frame_path in enumerate(tqdm(frames)):
+            colorized_frame = process_frame(frame_path)
+            colorized_frame_path = os.path.join(COLORIZED_FRAMES_FOLDER, f"colorized_frame_{i:04d}.png")
+            colorized_frame.save(colorized_frame_path)
+            colorized_frames.append(colorized_frame_path)
+
+        # Create output video
+        print("Creating output video...")
+        output_path = os.path.join(RESULT_FOLDER, "colorized_video.mp4")
+        create_video(colorized_frames, output_path, fps)
+
+        try:
+            video_data_url = video_to_data_url(output_path)
+            clean_up_frames()
+            return jsonify({
+                "success": True,
+                "processedVideo": video_data_url
+            })
+        except Exception as e:
+            clean_up_frames()
+            return jsonify({"error": str(e)}), 500
+
+    except Exception as e:
+        if 'clean_up_frames' in locals():
+            clean_up_frames()  # Clean up on error
+        return jsonify({"error": str(e)}), 500
         
 if __name__ == '__main__':
     app.run(debug=True,port=3000,host="0.0.0.0")

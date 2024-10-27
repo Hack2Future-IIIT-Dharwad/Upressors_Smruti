@@ -87,18 +87,18 @@ function CanvasHistoryPage() {
     }
 
     return (
-        <div className="flex min-h-screen bg-gray-50">
+        <div className="flex min-h-screen bg-gray-900">
             {/* Left Sidebar */}
-            <div className="w-72 bg-white border-r border-gray-200 p-6 shadow-sm">
+            <div className="w-72 bg-gray-900 border-r border-gray-800 p-6 shadow-md">
                 <div className="space-y-6">
                     <Dialog open={isOpen} onOpenChange={setIsOpen}>
                         <DialogTrigger asChild>
-                            <Button className="w-full gap-2 bg-blue-600 hover:bg-blue-700">
-                                <PlusCircle className="h-4 w-4" />
+                            <Button className="w-full gap-2 bg-violet-500 hover:bg-violet-300 text-white">
+                                <PlusCircle className="h-4 w-4 " />
                                 New Canvas
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
+                        <DialogContent className="sm:max-w-md bg-gray-900 text-white">
                             <DialogHeader>
                                 <DialogTitle>Create New Canvas</DialogTitle>
                             </DialogHeader>
@@ -110,17 +110,18 @@ function CanvasHistoryPage() {
                                         placeholder="Enter canvas name..."
                                         value={canvasName}
                                         onChange={(e) => setCanvasName(e.target.value)}
+                                        className="bg-gray-800 border-gray-700 text-white"
                                     />
                                 </div>
                             </div>
                             <DialogFooter>
                                 <DialogClose asChild>
-                                    <Button variant="outline">Cancel</Button>
+                                    <Button variant="outline" className="bg-gray-900" >Cancel</Button>
                                 </DialogClose>
                                 <Button
                                     onClick={handleCreateCanvas}
                                     disabled={!canvasName.trim() || isLoading}
-                                    className="bg-blue-600 hover:bg-blue-700"
+                                    className="bg-violet-500 hover:bg-violet-300 text-white"
                                 >
                                     {isLoading ? 'Creating...' : 'Create Canvas'}
                                 </Button>
@@ -133,19 +134,20 @@ function CanvasHistoryPage() {
                             <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
                             <Input
                                 placeholder="Search canvases..."
-                                className="pl-9"
+                                className="pl-9 bg-gray-800 border-gray-700 text-white placeholder-gray-400"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
 
                         <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-500 font-medium">View Mode</span>
+                            <span className="text-sm text-gray-400 font-medium">View Mode</span>
                             <div className="flex gap-2">
                                 <Button
                                     variant={isGridView ? "secondary" : "ghost"}
                                     size="sm"
                                     onClick={() => setIsGridView(true)}
+                                    className="text-gray-900 "
                                 >
                                     <Grid className="h-4 w-4" />
                                 </Button>
@@ -153,6 +155,7 @@ function CanvasHistoryPage() {
                                     variant={!isGridView ? "secondary" : "ghost"}
                                     size="sm"
                                     onClick={() => setIsGridView(false)}
+                                    className="text-gray-900"
                                 >
                                     <Menu className="h-4 w-4" />
                                 </Button>
@@ -165,8 +168,8 @@ function CanvasHistoryPage() {
             {/* Right Content */}
             <div className="flex-1 p-6">
                 <div className="mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900">Your Canvases</h1>
-                    <p className="text-gray-500 mt-1">You have {filteredCanvases.length} canvas{filteredCanvases.length !== 1 ? 'es' : ''}</p>
+                    <h1 className="text-2xl font-bold text-white">Your Canvases</h1>
+                    <p className="text-gray-400 mt-1">You have {filteredCanvases.length} canvas{filteredCanvases.length !== 1 ? 'es' : ''}</p>
                 </div>
 
                 {isGridView ? (
@@ -174,17 +177,17 @@ function CanvasHistoryPage() {
                         {filteredCanvases.map((canvas) => (
                             <Card
                                 key={(canvas as any).canvas_id}
-                                className="group hover:shadow-lg transition-shadow duration-200 cursor-pointer"
+                                className="group hover:shadow-lg transition-shadow duration-200 cursor-pointer bg-gray-900 border-gray-800"
                                 onClick={() => navigate(`/canvas/${(canvas as any)._id}`)}
                             >
                                 <CardContent className="p-4">
-                                    <div className="h-32 bg-gray-100 rounded-md mb-4 flex items-center justify-center">
+                                    <div className="h-32 bg-gray-800 rounded-md mb-4 flex items-center justify-center">
                                         <Layout className="h-8 w-8 text-gray-400" />
                                     </div>
-                                    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                                    <h3 className="text-lg font-semibold text-gray-100 group-hover:text-blue-400 transition-colors duration-200">
                                         {(canvas as any).name}
                                     </h3>
-                                    <div className="mt-2 flex items-center text-sm text-gray-500">
+                                    <div className="mt-2 flex items-center text-sm text-gray-400">
                                         <Clock className="h-4 w-4 mr-1" />
                                         <span>Last edited {formatDate((canvas as any).updated_at || new Date())}</span>
                                     </div>
@@ -197,19 +200,19 @@ function CanvasHistoryPage() {
                         {filteredCanvases.map((canvas) => (
                             <Card
                                 key={(canvas as any)._id}
-                                className="group hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                                className="group hover:shadow-md transition-shadow duration-200 cursor-pointer bg-gray-900 border-gray-800"
                                 onClick={() => navigate(`/canvas/${(canvas as any)._id}`)}
                             >
                                 <CardContent className="p-4 flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 bg-gray-100 rounded-md flex items-center justify-center">
+                                        <div className="h-12 w-12 bg-gray-800 rounded-md flex items-center justify-center">
                                             <Layout className="h-6 w-6 text-gray-400" />
                                         </div>
                                         <div>
-                                            <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-200">
+                                            <h3 className="font-semibold text-gray-100 group-hover:text-blue-400 transition-colors duration-200">
                                                 {(canvas as any).name}
                                             </h3>
-                                            <div className="flex items-center text-sm text-gray-500">
+                                            <div className="flex items-center text-sm text-gray-400">
                                                 <Clock className="h-4 w-4 mr-1" />
                                                 <span>Last edited {formatDate((canvas as any).updated_at || new Date())}</span>
                                             </div>
@@ -221,7 +224,7 @@ function CanvasHistoryPage() {
                     </div>
                 )}
             </div>
-        </div>
+        </div >
     );
 }
 

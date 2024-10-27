@@ -198,4 +198,5 @@ button:focus-visible {
   user-select: none;
   pointer-events: none;
   border: none;
+  background-color: transparent;
 }

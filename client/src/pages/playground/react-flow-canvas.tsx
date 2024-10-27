@@ -215,24 +215,50 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
 
                         }
                         else if (inputNode.data.type == "video") {
-                            const response = await fetch('http://localhost:3000/enhance/video', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                },
-                                body: JSON.stringify({
-                                    video: processedFile,
-                                    model: nextNode.data.label,
-                                }),
-                            });
+
+                            if (nextNode.data.label == "Colorize video") {
+                                const response = await fetch('http://localhost:3000/colorize/video', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        video: processedFile,
+                                        model: nextNode.data.label,
+                                    }),
+                                });
 
 
-                            if (!response.ok) {
-                                throw new Error(`Processing failed at ${nextNode.data.label}`);
+                                if (!response.ok) {
+                                    throw new Error(`Processing failed at ${nextNode.data.label}`);
+                                }
+
+                                const result = await response.json();
+                                processedFile = result.processedVideo;
+                            }
+                            else {
+
+                                const response = await fetch('http://localhost:3000/enhance/video', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({
+                                        video: processedFile,
+                                        model: nextNode.data.label,
+                                    }),
+                                });
+
+
+                                if (!response.ok) {
+                                    throw new Error(`Processing failed at ${nextNode.data.label}`);
+                                }
+
+                                const result = await response.json();
+                                processedFile = result.processedVideo;
                             }
 
-                            const result = await response.json();
-                            processedFile = result.processedVideo;
+
                         }
 
                         else if (inputNode.data.type == "text") {
@@ -350,10 +376,14 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
         event.dataTransfer.dropEffect = 'move';
     }, []);
 
+
+    const proOptions = { hideAttribution: true };
+
     return (
         <div
             style={{ height: "100vh", width: "100%" }}
             onDrop={onDrop}
+            className='bg-gray-900 text-gray-500'
             onDragOver={onDragOver}
         >
             <ReactFlow
@@ -363,10 +393,11 @@ const ReactFlowCanvas = forwardRef<ReactFlowCanvasRef, PipelineProps>(({ shouldC
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
                 nodeTypes={nodeTypes}
+                proOptions={proOptions}
                 fitView
             >
                 <Background color="#aaa" gap={16} />
-                <Controls />
+                <Controls className='space-y-1' />
             </ReactFlow>
         </div>
     );

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, X, Play, Trash2, Image, Cpu, Sparkles } from "lucide-react";
+import { Upload, X, Play, Trash2, Image, Cpu, Sparkles, Film } from "lucide-react";
 
 interface ComponentsSideBarProps {
     onClear: () => void;
@@ -11,31 +11,10 @@ interface ComponentsSideBarProps {
 
 const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsSideBarProps) => {
     const [uploadedImages, setUploadedImages] = useState([]);
-    // const [inputText, setInputText] = useState([]);
-
-    // const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    //     const text = event.target.value
-    //     setInputText(prev => [...prev, {
-    //         type: "text",
-    //         name: "text input",
-
-    //         text: text
-    //     }] as any);
-    // };
 
     const handleRunPipeline = () => {
         onRunPipeline();
     };
-
-
-    // const onDragStart2 = (event, inputText) => {
-    //     event.dataTransfer.setData('application/xyflow-type', inputText.type);
-    //     event.dataTransfer.setData('application/xyflow-name', inputText.name);
-    //     event.dataTransfer.setData('application/xyflow-category', "");
-    //     event.dataTransfer.setData('application/xyflow-file', "");
-    //     event.dataTransfer.setData('application/xyflow-text', inputText.text);
-    //     event.dataTransfer.effectAllowed = 'move';
-    // };
 
     const onDragStart = (event, data) => {
         event.dataTransfer.setData('application/xyflow-type', data.type);
@@ -43,8 +22,6 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
         event.dataTransfer.setData('application/xyflow-category', data.category);
         event.dataTransfer.setData('application/xyflow-file', data.file);
         event.dataTransfer.setData('application/xyflow-text', data.text);
-
-        console.log(data.text)
         event.dataTransfer.effectAllowed = 'move';
     };
 
@@ -56,10 +33,35 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                 reader.onload = (e) => {
                     setUploadedImages(prev => [...prev, {
                         type: file.type.startsWith('image/') ? 'image' : 'video',
-                        name: (file as any).name,
+                        name: file.name,
                         color: 'green',
-                        file: e.target.result
+                        file: e.target.result,
+                        thumbnail: file.type.startsWith('image/') ? e.target.result : null
                     }] as any);
+
+                    // Create thumbnail for videos
+                    if (file.type.startsWith('video/')) {
+                        const video = document.createElement('video');
+                        video.preload = 'metadata';
+                        video.src = URL.createObjectURL(file);
+                        video.onloadedmetadata = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = 160;
+                            canvas.height = 90;
+                            video.currentTime = 1; // Capture frame at 1 second
+                            video.onseeked = () => {
+                                canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+                                const thumbnail = canvas.toDataURL();
+                                setUploadedImages(prev =>
+                                    prev.map(item =>
+                                        item.file === e.target.result
+                                            ? { ...item, thumbnail }
+                                            : item
+                                    ) as any
+                                );
+                            };
+                        };
+                    }
                 };
                 reader.readAsDataURL(file);
             });
@@ -71,85 +73,27 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
     };
 
     const inputs = [
-        {
-            type: 'webcam',
-            name: 'Webcam',
-            color: 'green',
-            image: null
-        },
-        {
-            type: 'text',
-            name: 'Text Input',
-            color: 'green',
-            text: null
-        },
-
-
-
+        { type: 'webcam', name: 'Webcam', color: 'green', image: null },
+        { type: 'text', name: 'Text Input', color: 'green', text: null }
     ];
 
     const imageToImage = [
-        {
-            type: 'model',
-            name: 'EnRes',
-            color: 'blue',
-            image: null
-        },
-
-        {
-            type: 'model',
-            name: 'Colorization',
-            color: 'blue',
-            image: null
-        }
-        // {
-        //     type: 'model',
-        //     name: 'MISTRAL-7B-INSTRUCT-V0.2',
-        //     color: 'blue',
-        //     image: null
-        // },
-        // {
-        //     type: 'model',
-        //     name: 'GEMMA-7B-IT',
-        //     color: 'blue',
-        //     image: null
-        // },
-    ];
-
-    const imageGeneration = [
-        {
-            type: 'output',
-            name: 'OUTPUT-IMAGE',
-            color: 'blue',
-            image: null
-        },
-        {
-            type: 'output',
-            name: 'OUTPUT-VIDEO',
-            color: 'blue',
-            image: null
-        },
-
-
+        { type: 'model', name: 'EnRes', color: 'blue', image: null },
+        { type: 'model', name: 'Colorization', color: 'blue', image: null }
     ];
 
     const text_to_image = [
-        {
-            type: 'model',
-            name: 'Stable diffusion 3.5',
-            color: 'blue',
-            image: null
-        },
-    ]
-
+        { type: 'model', name: 'Stable diffusion 3.5', color: 'blue', image: null }
+    ];
 
     const video_to_video = [
-        {
-            type: 'model',
-            name: 'EnRes video',
-            color: 'blue',
-            image: null
-        },
+        { type: 'model', name: 'EnRes video', color: 'blue', image: null },
+        { type: 'model', name: 'Colorize video', color: 'blue', image: null }
+    ];
+
+    const imageGeneration = [
+        { type: 'output', name: 'OUTPUT-IMAGE', color: 'blue', image: null },
+        { type: 'output', name: 'OUTPUT-VIDEO', color: 'blue', image: null }
     ];
 
     return (
@@ -162,7 +106,7 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                         disabled={isProcessing}
                         className={`w-full h-10 font-medium ${isProcessing
                             ? 'bg-blue-500/50 text-blue-200'
-                            : 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg shadow-blue-500/20'
+                            : 'bg-violet-500 hover:bg-violet-300 text-white shadow-lg shadow-blue-500/20'
                             } transition-all duration-200`}
                     >
                         <Play className={`w-4 h-4 mr-2 ${isProcessing ? 'animate-spin' : ''}`} />
@@ -202,24 +146,42 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                             <span className="text-gray-400 text-sm group-hover:text-gray-300">Upload Image / Video</span>
                         </label>
 
-                        {uploadedImages.map((image, index) => (
+                        {uploadedImages.map((file, index) => (
                             <div
-                                key={`${image.name}-${index}`}
-                                className="flex items-center justify-between p-3 bg-gray-900/50 rounded-lg group hover:bg-gray-800/50 transition-all duration-200"
+                                key={`${file.name}-${index}`}
+                                className="relative bg-gray-900/50 rounded-lg group hover:bg-gray-800/50 transition-all duration-200 overflow-hidden"
                             >
                                 <div
                                     draggable
-                                    onDragStart={(event) => onDragStart(event, image)}
-                                    className="flex items-center flex-1 cursor-move"
+                                    onDragStart={(event) => onDragStart(event, file)}
+                                    className="cursor-move"
                                 >
-                                    <span className="text-emerald-400 text-sm font-medium truncate max-w-[180px]">
-                                        {image.name}
-                                    </span>
-                                    <div className="w-2 h-2 rounded-full bg-emerald-400 ml-2 flex-shrink-0"></div>
+                                    <div className="flex items-center p-2 border-b border-gray-800/50">
+                                        {file.type === 'video' ? (
+                                            <Film className="w-4 h-4 text-emerald-400 mr-2" />
+                                        ) : (
+                                            <Image className="w-4 h-4 text-emerald-400 mr-2" />
+                                        )}
+                                        <span className="text-emerald-400 text-sm font-medium truncate max-w-[180px]">
+                                            {file.name}
+                                        </span>
+                                    </div>
+
+                                    {/* Thumbnail Container */}
+                                    <div className="relative w-full h-24 bg-gray-900/30">
+                                        {file.thumbnail && (
+                                            <img
+                                                src={file.thumbnail}
+                                                alt={file.name}
+                                                className="w-full h-full object-cover"
+                                            />
+                                        )}
+                                    </div>
                                 </div>
+
                                 <button
                                     onClick={() => removeImage(index)}
-                                    className="ml-2 p-1.5 rounded-full hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                                    className="absolute top-2 right-2 p-1.5 rounded-full bg-gray-900/50 hover:bg-gray-800 opacity-0 group-hover:opacity-100 transition-all duration-200"
                                 >
                                     <X className="w-4 h-4 text-gray-400" />
                                 </button>
@@ -237,15 +199,6 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                                 <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
                             </div>
                         ))}
-
-                        {/* <input
-                            type="text"
-                            draggable
-                            onDragStart={(event) => onDragStart(event, inputText)}
-                            onChange={handleInputChange}
-                            className="ml-2 p-1 border border-gray-300 rounded-md"
-                            placeholder="Enter text..."
-                        /> */}
                     </CardContent>
                 </Card>
 
@@ -272,8 +225,7 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                     </CardContent>
                 </Card>
 
-                {/* Image Generation Section */}
-
+                {/* Text to Image Section */}
                 <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">
@@ -296,8 +248,7 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                     </CardContent>
                 </Card>
 
-
-
+                {/* Video to Video Section */}
                 <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">
@@ -320,7 +271,7 @@ const ComponentsSideBar = ({ onClear, onRunPipeline, isProcessing }: ComponentsS
                     </CardContent>
                 </Card>
 
-
+                {/* Output Section */}
                 <Card className="bg-gray-800/50 border-gray-700/50 shadow-lg">
                     <CardHeader className="pb-2">
                         <CardTitle className="text-xs font-semibold text-gray-400 tracking-wider flex items-center">

@@ -1,4 +1,5 @@
-import { Handle, Position } from "@xyflow/react";
+import { Handle, NodeToolbar } from "@xyflow/react";
+import { Divide } from "lucide-react";
 import React from "react";
 
 interface OutputNodeData {
@@ -9,6 +10,58 @@ interface OutputNodeData {
 export const OutputNode = ({ data }: { data: OutputNodeData }) => {
     const [isPlaying, setIsPlaying] = React.useState(false);
     const videoRef = React.useRef<HTMLVideoElement>(null);
+
+
+    const handleFileDownload = () => {
+        const data_url = data.processedFile;
+
+        // Convert data URL to blob
+        const byteString = atob(data_url.split(',')[1]);
+        const mimeString = data_url.split(',')[0].split(':')[1].split(';')[0];
+
+        // Get file extension from MIME type
+        const getFileExtension = (mimeType) => {
+            const mimeToExt = {
+                'image/jpeg': 'jpg',
+                'image/png': 'png',
+                'image/gif': 'gif',
+                'image/webp': 'webp',
+                'video/mp4': 'mp4',
+                'video/webm': 'webm',
+                'video/quicktime': 'mov'
+            };
+            return mimeToExt[mimeType] || 'file';
+        };
+
+        const fileExtension = getFileExtension(mimeString);
+        const fileName = `downloaded_file.${fileExtension}`;
+
+        const ab = new ArrayBuffer(byteString.length);
+        const ia = new Uint8Array(ab);
+
+        for (let i = 0; i < byteString.length; i++) {
+            ia[i] = byteString.charCodeAt(i);
+        }
+
+        const blob = new Blob([ab], { type: mimeString });
+
+        // Create file object
+        const file = new File([blob], fileName, { type: mimeString });
+
+        // Create download link
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(file);
+        link.download = fileName;
+
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+
+        // Cleanup
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    };
+
 
     const togglePlay = () => {
         if (videoRef.current) {
@@ -21,7 +74,7 @@ export const OutputNode = ({ data }: { data: OutputNodeData }) => {
         }
     };
 
-    const baseNodeStyle = "bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 w-40 h-40 ";
+    const baseNodeStyle = "bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 w-40 h-40 p-2";
 
     const ChessboardSkeleton = () => (
         <div className="w-36 h-36 bg-gray-50 rounded-md grid grid-cols-6 grid-rows-6 overflow-hidden">
@@ -43,9 +96,10 @@ export const OutputNode = ({ data }: { data: OutputNodeData }) => {
                 <div className={baseNodeStyle}>
                     <Handle
                         type="target"
-                        position={Position.Left}
-                        className="w-2 h-2 -left-1 rounded-full bg-blue-500 "
+                        position="left"
+                        className="w-2 h-2 -left-1 rounded-full bg-blue-500 border-2 border-white"
                     />
+
 
                     <div className="w-full h-full flex items-center justify-center">
                         {data.processedFile ? (
@@ -57,46 +111,32 @@ export const OutputNode = ({ data }: { data: OutputNodeData }) => {
                         ) : (
                             <ChessboardSkeleton />
                         )}
+                        <NodeToolbar isVisible={data.toolbarVisible} position={data.toolbarPosition}>
+                            <button onClick={handleFileDownload}>dowload</button>
+
+                        </NodeToolbar>
                     </div>
                 </div>
             )}
 
             {data.label === "OUTPUT-VIDEO" && (
-                <div className={baseNodeStyle}>
+                <div className={`${baseNodeStyle} flex items-center justify-center p-4 bg-gray-800 rounded-lg shadow-md`}>
                     <Handle
                         type="target"
                         position="left"
                         className="w-2 h-2 -left-1 rounded-full bg-blue-500 border-2 border-white"
                     />
 
-                    <div className="w-full h-full flex items-center justify-center">
-                        {data.processedFile ? (
-                            <div className="relative w-36 h-36">
-                                <video
-                                    ref={videoRef}
-                                    src={data.processedFile}
-                                    className="w-full h-full rounded-md object-cover"
-                                    loop
-                                />
-                                <button
-                                    onClick={togglePlay}
-                                    className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/20 transition-colors duration-200"
-                                >
-                                    {isPlaying ? (
-                                        <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6" />
-                                        </svg>
-                                    ) : (
-                                        <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                        </svg>
-                                    )}
-                                </button>
-                            </div>
-                        ) : (
-                            <ChessboardSkeleton />
-                        )}
-                    </div>
+                    {data.processedFile ? (
+                        <button
+                            onClick={handleFileDownload}
+                            className="mt-2 px-4 py-2 bg-purple-600 text-white font-semibold rounded hover:bg-purple-700 transition"
+                        >
+                            Download
+                        </button>
+                    ) : (
+                        <div className="mt-2 text-gray-400">Waiting for video...</div>
+                    )}
                 </div>
             )}
         </>
